@@ -1,0 +1,1017 @@
+<?xml version="1.0"?>
+<addon scheme="2.0">
+    <id>statistics</id>
+    <name>Statistics</name>
+    <description><![CDATA[<i><strong>Deprecated</strong>. To be excluded from v. 4.1.1. Learn more in the <a href="http://forum.cs-cart.com/topic/33444-some-add-ons-to-be-excluded-from-cs-cart-411/">official announcement</a>.</i>]]></description>
+    <version>1.0</version>
+    <priority>1300</priority>
+    <position>500</position>
+    <status>active</status>
+    <default_language>en</default_language>
+    <auto_install>MULTIVENDOR,ULTIMATE</auto_install>
+    <translations>
+        <item for="name" lang="es">Estadísticas</item>
+        <item for="name" lang="fr">Statistiques</item>
+        <item for="name" lang="da">Statistik</item>
+        <item for="name" lang="el">Στατιστικές </item>
+        <item for="name" lang="it">Statistiche</item>
+        <item for="name" lang="ro">Statistici</item>
+        <item for="name" lang="ru">Статистика</item>
+        <item for="name" lang="sl">Statistika</item>
+        <item for="name" lang="zh">统计</item>
+        <item for="description" lang="ru"><![CDATA[<i><strong>Устаревший модуль</strong>. Данный модуль будет исключен из базовой поставки, начиная с версии 4.1.1. Узнайте больше в <a href="http://forum.cs-cart.com/topic/33444-some-add-ons-to-be-excluded-from-cs-cart-411/">официальном анонсе</a>.</i>]]></item>
+        <item for="description" lang="zh">收集访问者的统计信息</item>
+    </translations>
+    <settings edition_type="ROOT,ULT:VENDOR">
+        <sections>
+            <section id="general">
+                <name>General</name>
+                <items>
+                    <item id="unique_clients_by">
+                        <name>Define unique clients by</name>
+                        <type>selectbox</type>
+                        <default_value>cookie</default_value>
+                        <variants>
+                            <item id="cookie">
+                                <name>Cookie</name>
+                                <translations>
+                                    <item lang="sl">Piškotek</item>
+                                </translations>
+                            </item>
+                            <item id="ip">
+                                <name>IP address</name>
+                                <translations>
+                                    <item lang="es">Dirección IP</item>
+                                    <item lang="el">Διεύθυνση IP</item>
+                                    <item lang="ro">Adresă IP</item>
+                                    <item lang="ru">IP адрес</item>
+                                    <item lang="sl">IP naslov</item>
+                                    <item lang="zh">IP地址</item>
+                                </translations>
+                            </item>
+                        </variants>
+                        <translations>
+                            <item lang="es">Definir clientes únicos por</item>
+                            <item lang="el">Define unique clients by </item>
+                            <item lang="ro">Definește clienții unici după</item>
+                            <item lang="ru">Определять уникальных посетителей по</item>
+                            <item lang="sl">Določi unikatne stranke z</item>
+                            <item lang="zh">定义唯一客户由</item>
+                        </translations>
+                    </item>
+                </items>
+            </section>
+        </sections>
+    </settings>
+    <queries>
+        <item>DROP TABLE IF EXISTS ?:stat_browsers;</item>
+        <item>DROP TABLE IF EXISTS ?:stat_ips;</item>
+        <item>DROP TABLE IF EXISTS ?:stat_languages;</item>
+        <item>DROP TABLE IF EXISTS ?:stat_product_search;</item>
+        <item>DROP TABLE IF EXISTS ?:stat_requests;</item>
+        <item>DROP TABLE IF EXISTS ?:stat_search_engines;</item>
+        <item>DROP TABLE IF EXISTS ?:stat_search_phrases;</item>
+        <item>DROP TABLE IF EXISTS ?:stat_sessions;</item>
+        <item>DROP TABLE IF EXISTS ?:stat_banners_log;</item>
+        <item>
+            CREATE TABLE `?:stat_browsers` (
+                `browser_id` mediumint(8) unsigned NOT NULL auto_increment,
+                `browser` varchar(50) NOT NULL default '',
+                `version` varchar(20) NOT NULL default '',
+                PRIMARY KEY  (`browser_id`)
+            ) Engine=MyISAM DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE `?:stat_ips` (
+                `ip_id` mediumint(8) unsigned NOT NULL auto_increment,
+                `ip` int(11) unsigned NOT NULL default '0',
+                `country_code` char(2) NOT NULL default '',
+                `city` varchar(50) NOT NULL default '',
+                PRIMARY KEY  (`ip_id`),
+                KEY `country_code` (`country_code`)
+            ) Engine=MyISAM DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE `?:stat_languages` (
+                `lang_code` varchar(5) NOT NULL default '',
+                `language` varchar(255) NOT NULL default '',
+                PRIMARY KEY  (`lang_code`)
+            ) Engine=MyISAM DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE `?:stat_product_search` (
+                `sess_id` mediumint(8) unsigned NOT NULL default '0',
+                `search_string` text NOT NULL,
+                `md5` varchar(32) NOT NULL default '',
+                `quantity` mediumint(8) unsigned NOT NULL default '0',
+                PRIMARY KEY  (`sess_id`,`md5`)
+            ) Engine=MyISAM DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE `?:stat_requests` (
+                `req_id` mediumint(8) unsigned NOT NULL auto_increment,
+                `timestamp` int(11) unsigned NOT NULL default '0',
+                `url` text NOT NULL,
+                `title` varchar(255) NOT NULL default '',
+                `https` char(1) NOT NULL default 'N',
+                `loadtime` int(11) unsigned NOT NULL default '0',
+                `sess_id` mediumint(8) unsigned NOT NULL default '0',
+                `request_type` int(11) unsigned NOT NULL default '0',
+                PRIMARY KEY  (`req_id`),
+                KEY `sess_id` (`sess_id`),
+                KEY `request_type` (`request_type`),
+                KEY `timestamp` (`timestamp`)
+            ) Engine=MyISAM DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE `?:stat_search_engines` (
+                `engine_id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT ,
+                `engine` varchar(128) NOT NULL default '',
+                PRIMARY KEY ( `engine_id` )
+            ) Engine=MyISAM DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE `?:stat_search_phrases` (
+                `phrase_id` mediumint(8) unsigned NOT NULL auto_increment,
+                `phrase` text NOT NULL,
+                PRIMARY KEY  (`phrase_id`)
+            ) Engine=MyISAM DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE `?:stat_sessions` (
+                `sess_id` mediumint(8) unsigned NOT NULL auto_increment,
+                `os` varchar(30) NOT NULL default '',
+                `client_type` char(1) NOT NULL default 'U',
+                `browser_id` mediumint(8) unsigned NOT NULL default '0',
+                `robot` varchar(64) NOT NULL default '',
+                `user_agent` varchar(255) NOT NULL default '',
+                `screen_x` smallint(5) unsigned NOT NULL default '0',
+                `screen_y` smallint(5) unsigned NOT NULL default '0',
+                `color` tinyint(3) unsigned NOT NULL default '0',
+                `client_language` varchar(5) NOT NULL default '',
+                `session` varchar(45) NOT NULL default '',
+                `host_ip` int(11) unsigned NOT NULL default '0',
+                `proxy_ip` int(11) unsigned NOT NULL default '0',
+                `ip_id` mediumint(8) unsigned NOT NULL default '0',
+                `uniq_code` int(11) unsigned NOT NULL default '0',
+                `referrer` text NOT NULL,
+                `referrer_scheme` varchar(32) NOT NULL default '',
+                `referrer_host` varchar(128) NOT NULL default '',
+                `engine_id` mediumint(8) unsigned NOT NULL default '0',
+                `phrase_id` mediumint(8) unsigned NOT NULL default '0',
+                `timestamp` int(11) unsigned NOT NULL default '0',
+                `expiry` int(11) unsigned NOT NULL default '0',
+                PRIMARY KEY  (`sess_id`),
+                KEY (`session`, `expiry`),
+                KEY `browser_id` (`browser_id`),
+                KEY `ip_id` (`ip_id`),
+                KEY `engine_id` (`engine_id`),
+                KEY `phrase_id` (`phrase_id`),
+                KEY `robot` (`robot`),
+                KEY `timestamp` (`timestamp`)
+            ) Engine=MyISAM DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE `?:stat_banners_log` (
+            `banner_id` mediumint(8) NOT NULL default '0',
+            `type` char(1) NOT NULL default 'C',
+            `timestamp` int(11) NOT NULL default '0',
+            KEY `banner_id` (`banner_id`,`type`,`timestamp`)
+            ) Engine=MyISAM DEFAULT CHARSET UTF8;
+        </item>
+        <item editions="ULTIMATE">
+            ALTER TABLE `?:stat_browsers`
+            ADD COLUMN `company_id` int(11) unsigned NOT NULL DEFAULT '0',
+            ADD KEY `company_id` (`company_id`);
+        </item>
+        <item editions="ULTIMATE">
+            ALTER TABLE `?:stat_ips`
+            ADD COLUMN `company_id` int(11) unsigned NOT NULL DEFAULT '0',
+            ADD KEY `company_id` (`company_id`);
+        </item>
+        <item editions="ULTIMATE">
+            ALTER TABLE `?:stat_languages`
+            ADD COLUMN `company_id` int(11) unsigned NOT NULL DEFAULT '0',
+            ADD KEY `company_id` (`company_id`);
+        </item>
+        <item editions="ULTIMATE">
+            ALTER TABLE `?:stat_product_search`
+            ADD COLUMN `company_id` int(11) unsigned NOT NULL DEFAULT '0',
+            ADD KEY `company_id` (`company_id`);
+        </item>
+        <item editions="ULTIMATE">
+            ALTER TABLE `?:stat_requests`
+            ADD COLUMN `company_id` int(11) unsigned NOT NULL DEFAULT '0',
+            ADD KEY `company_id` (`company_id`);
+        </item>
+        <item editions="ULTIMATE">
+            ALTER TABLE `?:stat_search_engines`
+            ADD COLUMN `company_id` int(11) unsigned NOT NULL DEFAULT '0',
+            ADD KEY `company_id` (`company_id`);
+        </item>
+        <item editions="ULTIMATE">
+            ALTER TABLE `?:stat_search_phrases`
+            ADD COLUMN `company_id` int(11) unsigned NOT NULL DEFAULT '0',
+            ADD KEY `company_id` (`company_id`);
+        </item>
+        <item editions="ULTIMATE">
+            ALTER TABLE `?:stat_sessions`
+            ADD COLUMN `company_id` int(11) unsigned NOT NULL DEFAULT '0',
+            ADD KEY `company_id` (`company_id`);
+        </item>
+        <item editions="ULTIMATE">
+            ALTER TABLE `?:stat_banners_log`
+            ADD COLUMN `company_id` int(11) unsigned NOT NULL DEFAULT '0',
+            ADD KEY `company_id` (`company_id`);
+        </item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('af', 'Afrikaans');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-sa', 'Arabic (Saudi Arabia)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-eg', 'Arabic (Egypt)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-dz', 'Arabic (Algeria)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-tn', 'Arabic (Tunisia)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-ye', 'Arabic (Yemen)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-jo', 'Arabic (Jordan)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-kw', 'Arabic (Kuwait)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-bh', 'Arabic (Bahrain)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('eu', 'Basque');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('be', 'Belarusian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('zh-tw', 'Chinese (Taiwan)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('zh-hk', 'Chinese (Hong Kong SAR)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('hr', 'Croatian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('da', 'Danish');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('nl-be', 'Dutch (Belgium)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('en-us', 'English (United States)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('en-au', 'English (Australia)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('en-nz', 'English (New Zealand)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('en-za', 'English (South Africa)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('en', 'English');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('en-tt', 'English (Trinidad)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('fo', 'Faeroese');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('fi', 'Finnish');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('fr-be', 'French (Belgium)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('fr-ch', 'French (Switzerland)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('gd', 'Gaelic (Scotland)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('de', 'German (Standard)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('de-at', 'German (Austria)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('de-li', 'German (Liechtenstein)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('he', 'Hebrew');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('hu', 'Hungarian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('id', 'Indonesian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('it-ch', 'Italian (Switzerland)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ko', 'Korean');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('lv', 'Latvian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('mk', 'Macedonian (FYROM)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('mt', 'Maltese');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('no', 'Norwegian (Nynorsk)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('pt-br', 'Portuguese (Brazil)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('rm', 'Rhaeto-Romanic');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ro-mo', 'Romanian (Moldavia)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ru-mo', 'Russian (Moldavia)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('sr', 'Serbian (Cyrillic)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('sk', 'Slovak');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('sb', 'Sorbian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-mx', 'Spanish (Mexico)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-cr', 'Spanish (Costa Rica)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-do', 'Spanish (Dominican Republic)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-co', 'Spanish (Colombia)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-ar', 'Spanish (Argentina)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-cl', 'Spanish (Chile)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-py', 'Spanish (Paraguay)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-sv', 'Spanish (El Salvador)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-ni', 'Spanish (Nicaragua)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('sx', 'Sutu');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('sv-fi', 'Swedish (Finland)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ts', 'Tsonga');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('tr', 'Turkish');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ur', 'Urdu');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('vi', 'Vietnamese');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ji', 'Yiddish');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('sq', 'Albanian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-iq', 'Arabic (Iraq)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-ly', 'Arabic (Libya)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-ma', 'Arabic (Morocco)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-om', 'Arabic (Oman)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-sy', 'Arabic (Syria)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-lb', 'Arabic (Lebanon)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-ae', 'Arabic (U.A.E.)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar-qa', 'Arabic (Qatar)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('bg', 'Bulgarian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ca', 'Catalan');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('zh-cn', 'Chinese (PRC)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('zh-sg', 'Chinese (Singapore)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('cs', 'Czech');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('nl', 'Dutch (Standard)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('en-gb', 'English (United Kingdom)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('en-ca', 'English (Canada)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('en-ie', 'English (Ireland)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('en-jm', 'English (Jamaica)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('en-bz', 'English (Belize)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('et', 'Estonian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('fa', 'Farsi');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('fr', 'French (Standard)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('fr-ca', 'French (Canada)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('fr-lu', 'French (Luxembourg)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('gd-ie', 'Gaelic (Ireland)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('de-ch', 'German (Switzerland)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('de-lu', 'German (Luxembourg)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('el', 'greek');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('hi', 'Hindi');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('is', 'Icelandic');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('it', 'Italian (Standard)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ja', 'Japanese');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('lt', 'Lithuanian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ms', 'Malaysian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('pl', 'Polish');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('pt', 'Portuguese (Portugal)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ro', 'Romanian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ru', 'Russian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('sz', 'Sami (Lappish)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('sl', 'Slovenian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es', 'Spanish (Spain)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-gt', 'Spanish (Guatemala)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-pa', 'Spanish (Panama)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-ve', 'Spanish (Venezuela)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-pe', 'Spanish (Peru)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-ec', 'Spanish (Ecuador)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-uy', 'Spanish (Uruguay)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-bo', 'Spanish (Bolivia)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-hn', 'Spanish (Honduras)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('es-pr', 'Spanish (Puerto Rico)');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('sv', 'Swedish');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('th', 'Thai');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('tn', 'Tswana');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('uk', 'Ukrainian');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ve', 'Venda');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('xh', 'Xhosa');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('zu', 'Zulu');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('ar', 'Arabic');</item>
+        <item>REPLACE INTO ?:stat_languages (lang_code, language) VALUES ('zh', 'Chinese');</item>
+        <item editions="PROFESSIONAL,MULTIVENDOR,ULTIMATE">REPLACE INTO ?:privileges (privilege, is_default, section_id) VALUES ('view_statistics', 'Y', 'addons');</item>
+        <item editions="PROFESSIONAL,MULTIVENDOR,ULTIMATE">REPLACE INTO ?:privileges (privilege, is_default, section_id) VALUES ('manage_statistics', 'Y', 'addons');</item>
+        <item for="uninstall" editions="PROFESSIONAL,MULTIVENDOR,ULTIMATE">DELETE FROM ?:privileges WHERE privilege LIKE 'manage_statistics' OR privilege LIKE 'view_statistics'</item>
+        <item for="uninstall">DROP TABLE IF EXISTS ?:stat_browsers;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS ?:stat_ips;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS ?:stat_languages;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS ?:stat_product_search;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS ?:stat_requests;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS ?:stat_search_engines;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS ?:stat_search_phrases;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS ?:stat_sessions;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS ?:stat_banners_log;</item>
+    </queries>
+    <language_variables>
+        <item lang="en" id="stat_top_search_terms">Top 5 search terms</item>
+        <item lang="en" id="stat_search_term">Search term</item>
+        <item lang="en" id="stat_results">Results</item>
+        <item lang="en" id="privileges.view_statistics">View statistics</item>
+        <item lang="en" id="privileges.manage_statistics">Manage statistics</item>
+
+        <item lang="ru" id="stat_top_search_terms">Топ 5 поисковых запросов</item>
+        <item lang="ru" id="stat_search_term">Поисковый запрос</item>
+        <item lang="ru" id="stat_results">Найдено</item>
+        <item lang="ru" id="privileges.view_statistics">Просмотр статистики</item>
+        <item lang="ru" id="privileges.manage_statistics">Управление статистикой</item>
+        <item lang="en" id="short_minute">min.</item>
+        <item lang="en" id="operating_systems">Operating systems</item>
+        <item lang="en" id="browsers">Browsers</item>
+        <item lang="en" id="resolutions">Resolutions</item>
+        <item lang="en" id="ip_addresses">IP Addresses</item>
+        <item lang="en" id="by_domain">By domain</item>
+        <item lang="en" id="by_search_engine">By search engine</item>
+        <item lang="en" id="came_from">Came from</item>
+        <item lang="en" id="came_to">Came to</item>
+        <item lang="en" id="titles_by_visits">Titles by visits</item>
+        <item lang="en" id="entry_points">Entry points</item>
+        <item lang="en" id="exit_points">Exit points</item>
+        <item lang="en" id="pages_by_visits">Pages by visits</item>
+        <item lang="en" id="hours">Hours</item>
+        <item lang="en" id="old_visitors">Repeat visitors</item>
+        <item lang="en" id="new_visitors">New visitors</item>
+        <item lang="en" id="short_second">sec.</item>
+        <item lang="en" id="site_attendance">Site attendance</item>
+        <item lang="en" id="visit_time">Visit time</item>
+        <item lang="en" id="repeat_new_visits">Repeat/New visits</item>
+        <item lang="en" id="page_load_speed">Page load speed</item>
+        <item lang="en" id="total_pages_viewed_per_visitor">Total pages viewed per visitor</item>
+        <item lang="en" id="visits">Visits</item>
+        <item lang="en" id="robots">Robots</item>
+        <item lang="en" id="undefined">undefined</item>
+        <item lang="en" id="users_online">Users online</item>
+        <item lang="en" id="view_pages">View pages</item>
+        <item lang="en" id="average_depth">Average depth</item>
+        <item lang="en" id="average_duration">Average duration</item>
+        <item lang="en" id="visitors">Visitors</item>
+        <item lang="en" id="visitor_hosts">Visitor hosts</item>
+        <item lang="en" id="proxy">Proxy</item>
+        <item lang="en" id="search_conditions">Search conditions</item>
+        <item lang="en" id="found_products">Found products</item>
+        <item lang="en" id="phrase">Phrase</item>
+        <item lang="en" id="search_phrase">Search phrase</item>
+        <item lang="en" id="referrer_url">Referrer URL</item>
+        <item lang="en" id="browser_name">Browser name</item>
+        <item lang="en" id="browser_version">Browser version</item>
+        <item lang="en" id="operating_system">Operating system</item>
+        <item lang="en" id="exclude">Exclude</item>
+        <item lang="en" id="robot">Robot</item>
+        <item lang="en" id="browser">Browser</item>
+        <item lang="en" id="current_page">Current page</item>
+        <item lang="en" id="referrer">Referrer</item>
+        <item lang="en" id="user_agent">User-Agent</item>
+        <item lang="en" id="all_users">All users</item>
+        <item lang="en" id="remove_statistics">Remove statistics</item>
+        <item lang="en" id="route">Route</item>
+        <item lang="en" id="robot_path">Robot path</item>
+        <item lang="en" id="visitor_path">Visitor path</item>
+        <item lang="en" id="robots_log">Robots log</item>
+        <item lang="en" id="visitors_log">Visitors log</item>
+        <item lang="en" id="tt_addons_statistics_views_statistics_components_search_form_exclude">If enabled, the set options are excluded from the search results.</item>
+        <item lang="en" id="tt_addons_statistics_views_statistics_components_search_form_limit">Max number of items in search results.</item>
+
+        <item lang="bg" id="short_minute">мин.</item>
+        <item lang="bg" id="operating_systems">ОС</item>
+        <item lang="bg" id="browsers">Броузери</item>
+        <item lang="bg" id="resolutions">Резолюции</item>
+        <item lang="bg" id="ip_addresses">IP Адреси</item>
+        <item lang="bg" id="by_domain">По домейн</item>
+        <item lang="bg" id="by_search_engine">По търсещи машини</item>
+        <item lang="bg" id="came_from">Идва от</item>
+        <item lang="bg" id="came_to">Дойде на</item>
+        <item lang="bg" id="titles_by_visits">Заглавия по посещения</item>
+        <item lang="bg" id="entry_points">Входни точки</item>
+        <item lang="bg" id="exit_points">Изходни точки</item>
+        <item lang="bg" id="pages_by_visits">Страници по посещения</item>
+        <item lang="bg" id="hours">Часа</item>
+        <item lang="bg" id="old_visitors">Повторни посетители</item>
+        <item lang="bg" id="new_visitors">Нови посетители</item>
+        <item lang="bg" id="short_second">сек.</item>
+        <item lang="bg" id="site_attendance">Посещаемост</item>
+        <item lang="bg" id="visit_time">Времена на посещенията</item>
+        <item lang="bg" id="repeat_new_visits">Повтарящи / Нови посещения</item>
+        <item lang="bg" id="page_load_speed">Скорост на зареждане на страниците</item>
+        <item lang="bg" id="total_pages_viewed_per_visitor">Общо разгледани страници от посетител</item>
+        <item lang="bg" id="visits">Посещения</item>
+        <item lang="bg" id="robots">Роботи</item>
+        <item lang="bg" id="undefined">неопределен</item>
+        <item lang="bg" id="users_online">Онлайн потребители</item>
+        <item lang="bg" id="view_pages">Разглеждани страници</item>
+        <item lang="bg" id="average_depth">Нормална дълбочина</item>
+        <item lang="bg" id="average_duration">Нормална продължителност</item>
+        <item lang="bg" id="visitors">Посетители</item>
+        <item lang="bg" id="visitor_hosts">Посетителски хостове</item>
+        <item lang="bg" id="proxy">Прокси</item>
+        <item lang="bg" id="search_conditions">Условия на търсене</item>
+        <item lang="bg" id="found_products">Намерени продукти</item>
+        <item lang="bg" id="phrase">Фраза</item>
+        <item lang="bg" id="search_phrase">Търсена на фраза</item>
+        <item lang="bg" id="referrer_url">URL Реферал</item>
+        <item lang="bg" id="browser_name">Име на броузъра</item>
+        <item lang="bg" id="browser_version">Версия на броузъра</item>
+        <item lang="bg" id="operating_system">ОС</item>
+        <item lang="bg" id="exclude">Изключване</item>
+        <item lang="bg" id="robot">Робот</item>
+        <item lang="bg" id="browser">Броузер</item>
+        <item lang="bg" id="current_page">Текуща страница</item>
+        <item lang="bg" id="referrer">Реферал</item>
+        <item lang="bg" id="user_agent">Потербител-Агент</item>
+        <item lang="bg" id="all_users">Всички потребители</item>
+        <item lang="bg" id="remove_statistics">Изтрий статистики</item>
+        <item lang="bg" id="route">Маршрут</item>
+        <item lang="bg" id="robot_path">Робот път</item>
+        <item lang="bg" id="visitor_path">Посетителски път</item>
+        <item lang="bg" id="robots_log">Роботи логове</item>
+        <item lang="bg" id="visitors_log">Дневник на посещенията</item>
+
+        <item lang="da" id="operating_systems">Styresystem</item>
+        <item lang="da" id="browsers">Browser</item>
+        <item lang="da" id="resolutions">Opløsning</item>
+        <item lang="da" id="ip_addresses">IP adresser</item>
+        <item lang="da" id="by_domain">Af domæne</item>
+        <item lang="da" id="by_search_engine">Af søgemaskine</item>
+        <item lang="da" id="came_from">Kommer fra</item>
+        <item lang="da" id="came_to">Komme til</item>
+        <item lang="da" id="titles_by_visits">Titler ved besøg</item>
+        <item lang="da" id="entry_points">tilmelding points</item>
+        <item lang="da" id="exit_points">Afslut point</item>
+        <item lang="da" id="pages_by_visits">ved siden af besøg</item>
+        <item lang="da" id="hours">Timer</item>
+        <item lang="da" id="old_visitors">Tilbagevendende besøgende</item>
+        <item lang="da" id="new_visitors">Ny kunde</item>
+        <item lang="da" id="short_second">sek.</item>
+        <item lang="da" id="site_attendance">Side deltagelse</item>
+        <item lang="da" id="visit_time">Besøg tid</item>
+        <item lang="da" id="repeat_new_visits">Gentag / Nye besøg</item>
+        <item lang="da" id="page_load_speed">Side load speed</item>
+        <item lang="da" id="total_pages_viewed_per_visitor">Total viste sider pr besøgende</item>
+        <item lang="da" id="visits">Besøg</item>
+        <item lang="da" id="robots">Robot</item>
+        <item lang="da" id="undefined">Ukendt</item>
+        <item lang="da" id="users_online">Bruger online</item>
+        <item lang="da" id="view_pages">Vis sider\n</item>
+        <item lang="da" id="average_depth">Gennemsnitlig dybde</item>
+        <item lang="da" id="average_duration">Gennemsnitlig varighed</item>
+        <item lang="da" id="visitors">Besøgende</item>
+        <item lang="da" id="visitor_hosts">Besøgende værter</item>
+        <item lang="da" id="search_conditions">Søg conditions</item>
+        <item lang="da" id="found_products">Funde produkter</item>
+        <item lang="da" id="phrase">frase</item>
+        <item lang="da" id="search_phrase">Søg frase</item>
+        <item lang="da" id="referrer_url">henvis URL</item>
+        <item lang="da" id="browser_name">Browser navn</item>
+        <item lang="da" id="operating_system">OP system</item>
+        <item lang="da" id="exclude">udelukke</item>
+        <item lang="da" id="robot">robot</item>
+        <item lang="da" id="browser">browser</item>
+        <item lang="da" id="current_page">aktuel side</item>
+        <item lang="da" id="referrer">henvise</item>
+        <item lang="da" id="user_agent">Kundeagent</item>
+        <item lang="da" id="all_users">Alle bruger</item>
+        <item lang="da" id="remove_statistics">Fjern statistik</item>
+        <item lang="da" id="route">Rute</item>
+        <item lang="da" id="robot_path">Robot sti</item>
+        <item lang="da" id="visitor_path">Besøgende sti</item>
+        <item lang="da" id="robots_log">Robot log</item>
+        <item lang="da" id="visitors_log">Besøgende log</item>
+
+        <item lang="de" id="visits">Besuche</item>
+        <item lang="de" id="users_online">Benutzer online</item>
+        <item lang="de" id="view_pages">Seiten anschauen</item>
+        <item lang="de" id="all_users">alle Benutzer</item>
+
+        <item lang="el" id="short_minute">λεπτά</item>
+        <item lang="el" id="operating_systems">Λειτουργικά συστήματα</item>
+        <item lang="el" id="browsers">Φυλλομετρητές</item>
+        <item lang="el" id="resolutions">Αναλύσεις</item>
+        <item lang="el" id="ip_addresses">Διευθύνσεις IP</item>
+        <item lang="el" id="by_domain">Από όνομα χώρου</item>
+        <item lang="el" id="by_search_engine">Από μηχανή αναζήτησης</item>
+        <item lang="el" id="came_from">Ήρθε από</item>
+        <item lang="el" id="came_to">Ήρθε στο</item>
+        <item lang="el" id="titles_by_visits">Τίτλοι επισκέψεων</item>
+        <item lang="el" id="entry_points">Καταχώρηση πόντων</item>
+        <item lang="el" id="exit_points">Πόντοι εξόδου</item>
+        <item lang="el" id="pages_by_visits">Σελίδες ανά επισκέψεις</item>
+        <item lang="el" id="hours">Ώρες</item>
+        <item lang="el" id="old_visitors">Επανάληψη επισκεπτών</item>
+        <item lang="el" id="new_visitors">Νέοι επισκέπτες</item>
+        <item lang="el" id="short_second">δευτ.</item>
+        <item lang="el" id="site_attendance">Παρουσία ιστότοπου</item>
+        <item lang="el" id="visit_time">Ώρα επίσκεψης</item>
+        <item lang="el" id="repeat_new_visits">Επανάληψη / Νέες επισκέψεις</item>
+        <item lang="el" id="page_load_speed">Ταχύτητα φόρτωσης σελίδας</item>
+        <item lang="el" id="total_pages_viewed_per_visitor">Σύνολο σελίδων που προβλήθηκαν ανά επισκέπτη</item>
+        <item lang="el" id="visits">επισκέψεις</item>
+        <item lang="el" id="undefined">απροσδιόριστο</item>
+        <item lang="el" id="users_online">Αριθμός Χρήστών Online</item>
+        <item lang="el" id="view_pages">Προβολή Σελίδων</item>
+        <item lang="el" id="average_depth">Μέσος όρος βάθους</item>
+        <item lang="el" id="average_duration">Μέσος όρος διάρκειας</item>
+        <item lang="el" id="visitors">Επισκέπτες</item>
+        <item lang="el" id="visitor_hosts">Καταχώρηση επισκέπτη</item>
+        <item lang="el" id="proxy">Πληρεξούσιο</item>
+        <item lang="el" id="search_conditions">Αναζήτηση προϋποθέσεων</item>
+        <item lang="el" id="found_products">Προιόντα που βρέθηκαν</item>
+        <item lang="el" id="phrase">Φράση</item>
+        <item lang="el" id="search_phrase">Φράση αναζήτησης</item>
+        <item lang="el" id="referrer_url">Αναφέρουσα URL</item>
+        <item lang="el" id="browser_name">Όνομα φυλλομετρητή</item>
+        <item lang="el" id="browser_version">Έκδοση φυλλομετρητή</item>
+        <item lang="el" id="operating_system">Λειτουργικό σύστημα</item>
+        <item lang="el" id="exclude">Εξαίρεση</item>
+        <item lang="el" id="browser">Φυλλομετρητής</item>
+        <item lang="el" id="current_page">Τρέχουσα σελίδα</item>
+        <item lang="el" id="referrer">Αναφέρων</item>
+        <item lang="el" id="user_agent">Χρήστης-Αντιπρόσωπος</item>
+        <item lang="el" id="all_users">Χρήστες</item>
+        <item lang="el" id="remove_statistics">Αφαίρεση στατιστικών</item>
+        <item lang="el" id="route">Δρομολόγηση</item>
+        <item lang="el" id="robot_path">Διαδρομή Robot</item>
+        <item lang="el" id="visitor_path">Διαδρομή των επισκεπτών</item>
+        <item lang="el" id="robots_log">Καταγραφή Robots</item>
+        <item lang="el" id="visitors_log">Σύνδεση επισκέπτη</item>
+
+        <item lang="es" id="operating_systems">Sistemas operativos</item>
+        <item lang="es" id="browsers">Navegadores</item>
+        <item lang="es" id="resolutions">Resoluciones</item>
+        <item lang="es" id="ip_addresses">Direcciones IP</item>
+        <item lang="es" id="by_domain">por dominio</item>
+        <item lang="es" id="by_search_engine">por buscador</item>
+        <item lang="es" id="came_from">Vino de</item>
+        <item lang="es" id="came_to">Vino a</item>
+        <item lang="es" id="titles_by_visits">Títulos por visitas</item>
+        <item lang="es" id="entry_points">Puntos de entrada</item>
+        <item lang="es" id="exit_points">Puntos de salida</item>
+        <item lang="es" id="pages_by_visits">Páginas por num. de visitas</item>
+        <item lang="es" id="hours">Horas</item>
+        <item lang="es" id="old_visitors">Visitantes habituales</item>
+        <item lang="es" id="new_visitors">Nuevos visitantes</item>
+        <item lang="es" id="site_attendance">Concurrencia de la Web</item>
+        <item lang="es" id="visit_time">Tiempo de visita</item>
+        <item lang="es" id="repeat_new_visits">Repetidas/Nuevas visitas</item>
+        <item lang="es" id="page_load_speed">Velocidad de carga de la página</item>
+        <item lang="es" id="total_pages_viewed_per_visitor">Total de páginas vistas por visitante</item>
+        <item lang="es" id="visits">Visitas</item>
+        <item lang="es" id="undefined">indefinido</item>
+        <item lang="es" id="users_online">Usuarios en línea</item>
+        <item lang="es" id="view_pages">Ver páginas</item>
+        <item lang="es" id="average_depth">Promedio depth</item>
+        <item lang="es" id="average_duration">Duración media</item>
+        <item lang="es" id="visitors">Visitantes</item>
+        <item lang="es" id="visitor_hosts">Hosts de los visitantes</item>
+        <item lang="es" id="search_conditions">Condiciones de búsqueda</item>
+        <item lang="es" id="found_products">Productos encontrados</item>
+        <item lang="es" id="phrase">Frase</item>
+        <item lang="es" id="search_phrase">Buscar frase</item>
+        <item lang="es" id="browser_name">Buscar nombre</item>
+        <item lang="es" id="browser_version">Versión del navegador</item>
+        <item lang="es" id="operating_system">Sistema operativo</item>
+        <item lang="es" id="exclude">Excluir</item>
+        <item lang="es" id="browser">Navegador</item>
+        <item lang="es" id="current_page">Página actual</item>
+        <item lang="es" id="user_agent">Agente</item>
+        <item lang="es" id="all_users">Usuarios</item>
+        <item lang="es" id="remove_statistics">Eliminar estadísticas</item>
+        <item lang="es" id="route">Ruta</item>
+        <item lang="es" id="robot_path">ruta de Robot</item>
+        <item lang="es" id="visitor_path">Ruta del invitado</item>
+        <item lang="es" id="robots_log">Informe de Robots</item>
+        <item lang="es" id="visitors_log">Registro de visitantes</item>
+
+        <item lang="fr" id="operating_systems">Systèmes d'exploitation</item>
+        <item lang="fr" id="browsers">Navigateurs</item>
+        <item lang="fr" id="ip_addresses">Adresses IP</item>
+        <item lang="fr" id="by_domain">Par domaine</item>
+        <item lang="fr" id="by_search_engine">Par moteur de recherche</item>
+        <item lang="fr" id="came_from">Viens de</item>
+        <item lang="fr" id="came_to">Va vers</item>
+        <item lang="fr" id="titles_by_visits">Titres par visites</item>
+        <item lang="fr" id="entry_points">Entrer points</item>
+        <item lang="fr" id="exit_points">Points de sortie</item>
+        <item lang="fr" id="pages_by_visits">Pages par visites</item>
+        <item lang="fr" id="hours">Heures</item>
+        <item lang="fr" id="old_visitors">Répéter les visiteurs</item>
+        <item lang="fr" id="new_visitors">Nouveaux visiteurs</item>
+        <item lang="fr" id="site_attendance">Site en maintenance</item>
+        <item lang="fr" id="visit_time">Heure de visite</item>
+        <item lang="fr" id="repeat_new_visits">Repéter/Nouvelles visites</item>
+        <item lang="fr" id="page_load_speed">Vitesse de chargement de la page</item>
+        <item lang="fr" id="total_pages_viewed_per_visitor">Total des pages vues par le visiteur</item>
+        <item lang="fr" id="visits">Visites</item>
+        <item lang="fr" id="undefined">indéfini</item>
+        <item lang="fr" id="users_online">Utilisateurs en ligne</item>
+        <item lang="fr" id="view_pages">Voir pages</item>
+        <item lang="fr" id="average_depth">Profondeur moyenne</item>
+        <item lang="fr" id="average_duration">Durée moyenne</item>
+        <item lang="fr" id="visitors">Visiteurs</item>
+        <item lang="fr" id="visitor_hosts">Visiteurs hôtes</item>
+        <item lang="fr" id="search_conditions">Conditions de recherche</item>
+        <item lang="fr" id="found_products">Produits trouvés</item>
+        <item lang="fr" id="search_phrase">Chercher une phrase</item>
+        <item lang="fr" id="referrer_url">Référence URL</item>
+        <item lang="fr" id="browser_name">Nom du navigateur</item>
+        <item lang="fr" id="browser_version">Version du navigateur</item>
+        <item lang="fr" id="operating_system">Système d'exploitation</item>
+        <item lang="fr" id="exclude">Exclure</item>
+        <item lang="fr" id="browser">Navigateur</item>
+        <item lang="fr" id="current_page">Page actuelle</item>
+        <item lang="fr" id="referrer">Référence</item>
+        <item lang="fr" id="all_users">Tous les utilisateurs</item>
+        <item lang="fr" id="remove_statistics">Enlever les statistiques</item>
+        <item lang="fr" id="robot_path">Robot chemin</item>
+        <item lang="fr" id="visitor_path">Visiteur cheminement</item>
+        <item lang="fr" id="visitors_log">Visiteurs log</item>
+
+        <item lang="it" id="operating_systems">Sistemi operativi</item>
+        <item lang="it" id="resolutions">Risoluzioni</item>
+        <item lang="it" id="ip_addresses">Indirizzi IP</item>
+        <item lang="it" id="by_domain">Per dominio</item>
+        <item lang="it" id="by_search_engine">Per motore di ricerca</item>
+        <item lang="it" id="came_from">Provenuto da</item>
+        <item lang="it" id="came_to">Andato a</item>
+        <item lang="it" id="titles_by_visits">Titoli dalle visite</item>
+        <item lang="it" id="entry_points">Punti d'accesso</item>
+        <item lang="it" id="exit_points">Punti di uscita</item>
+        <item lang="it" id="pages_by_visits">Pagine per visite</item>
+        <item lang="it" id="hours">Ore</item>
+        <item lang="it" id="old_visitors">Visitatori di ritorno</item>
+        <item lang="it" id="new_visitors">Nuovi visitatori</item>
+        <item lang="it" id="visit_time">Tempo visita</item>
+        <item lang="it" id="repeat_new_visits">Ripetute/nuove visite</item>
+        <item lang="it" id="page_load_speed">Velocità di caricamento</item>
+        <item lang="it" id="total_pages_viewed_per_visitor">Pagine totali viste per visitatore</item>
+        <item lang="it" id="visits">Visite</item>
+        <item lang="it" id="undefined">Indefinito</item>
+        <item lang="it" id="users_online">Utenti online</item>
+        <item lang="it" id="view_pages">Visualizza pagine</item>
+        <item lang="it" id="average_depth">Profondità media</item>
+        <item lang="it" id="average_duration">Durata media</item>
+        <item lang="it" id="visitors">Visitatori</item>
+        <item lang="it" id="visitor_hosts">Host visitatori</item>
+        <item lang="it" id="search_conditions">Condizioni di ricerca</item>
+        <item lang="it" id="found_products">Trova prodotti</item>
+        <item lang="it" id="phrase">Frase</item>
+        <item lang="it" id="search_phrase">Cerca frase</item>
+        <item lang="it" id="referrer_url">URL referente</item>
+        <item lang="it" id="browser_name">Nome browser</item>
+        <item lang="it" id="browser_version">Versione browser</item>
+        <item lang="it" id="operating_system">Sistema operativo</item>
+        <item lang="it" id="exclude">Escludi</item>
+        <item lang="it" id="current_page">Pagina corrente</item>
+        <item lang="it" id="referrer">Referente</item>
+        <item lang="it" id="all_users">Tutti gli utenti</item>
+        <item lang="it" id="remove_statistics">Rimuovere statistiche</item>
+        <item lang="it" id="route">Percorso</item>
+        <item lang="it" id="robot_path">Percorso robot</item>
+        <item lang="it" id="visitor_path">Indirizzo visitatore</item>
+        <item lang="it" id="visitors_log">Log visitatori</item>
+
+        <item lang="nl" id="visits">Bezoekers</item>
+        <item lang="nl" id="users_online">Gebruikers online</item>
+        <item lang="nl" id="view_pages">Bekijk pagina's</item>
+        <item lang="nl" id="all_users">Alle gebruikers</item>
+
+        <item lang="no" id="operating_systems">Operativsystemer</item>
+        <item lang="no" id="browsers">Nettlesere</item>
+        <item lang="no" id="resolutions">Oppløsninger</item>
+        <item lang="no" id="ip_addresses">IP-adresser</item>
+        <item lang="no" id="by_domain">Etter domene</item>
+        <item lang="no" id="by_search_engine">Etter søkemotor</item>
+        <item lang="no" id="came_from">Kom fra</item>
+        <item lang="no" id="came_to">Kom til</item>
+        <item lang="no" id="titles_by_visits">Titler etter besøk</item>
+        <item lang="no" id="entry_points">Inngangspunkter</item>
+        <item lang="no" id="exit_points">Utgangspunkter</item>
+        <item lang="no" id="pages_by_visits">Sider etter besøk</item>
+        <item lang="no" id="hours">(Klokkeslett)</item>
+        <item lang="no" id="old_visitors">Gjentagende besøkende</item>
+        <item lang="no" id="new_visitors">Nye besøkende</item>
+        <item lang="no" id="short_second">sek.</item>
+        <item lang="no" id="site_attendance">Nettside frammøte</item>
+        <item lang="no" id="visit_time">Besøkstid</item>
+        <item lang="no" id="repeat_new_visits">Gjentagende/Nye besøk</item>
+        <item lang="no" id="page_load_speed">Side lastehastighet</item>
+        <item lang="no" id="total_pages_viewed_per_visitor">Totalt viste sider per besøkende</item>
+        <item lang="no" id="visits">Besøk</item>
+        <item lang="no" id="robots">Roboter</item>
+        <item lang="no" id="undefined">udefinert</item>
+        <item lang="no" id="users_online">Brukere online</item>
+        <item lang="no" id="view_pages">Vis sider</item>
+        <item lang="no" id="average_depth">Gjennomsnittlig dybde</item>
+        <item lang="no" id="average_duration">Gjennomsnittlig varighet</item>
+        <item lang="no" id="visitors">Besøkende</item>
+        <item lang="no" id="visitor_hosts">Besøkendes verter</item>
+        <item lang="no" id="search_conditions">Søkevilkår</item>
+        <item lang="no" id="found_products">Produkter funnet</item>
+        <item lang="no" id="phrase">Frase</item>
+        <item lang="no" id="search_phrase">Søkefrase</item>
+        <item lang="no" id="referrer_url">Henviser URL</item>
+        <item lang="no" id="browser_name">Nettlesernavn</item>
+        <item lang="no" id="browser_version">Nettleserversjon</item>
+        <item lang="no" id="operating_system">Operativsystem</item>
+        <item lang="no" id="exclude">Ekskluder</item>
+        <item lang="no" id="browser">Nettleser</item>
+        <item lang="no" id="current_page">Gjeldende side</item>
+        <item lang="no" id="referrer">Henviser</item>
+        <item lang="no" id="user_agent">Brukeragent</item>
+        <item lang="no" id="all_users">Alle brukere</item>
+        <item lang="no" id="remove_statistics">Fjern statistikk</item>
+        <item lang="no" id="route">Diriger</item>
+        <item lang="no" id="robot_path">Robotsti</item>
+        <item lang="no" id="visitor_path">Besøkende sti</item>
+        <item lang="no" id="robots_log">Robotlogg</item>
+        <item lang="no" id="visitors_log">Besøkende logg</item>
+
+        <item lang="ro" id="operating_systems">Sisteme de operare</item>
+        <item lang="ro" id="browsers">Browsere</item>
+        <item lang="ro" id="resolutions">Rezoluțiile</item>
+        <item lang="ro" id="ip_addresses">Adrese IP</item>
+        <item lang="ro" id="by_domain">După domeniu</item>
+        <item lang="ro" id="by_search_engine">Prin motor de căutare</item>
+        <item lang="ro" id="came_from">Venit de la</item>
+        <item lang="ro" id="came_to">Adresat</item>
+        <item lang="ro" id="titles_by_visits">Titluri după vizite</item>
+        <item lang="ro" id="entry_points">Puncte de intrare</item>
+        <item lang="ro" id="exit_points">Puncte de ieșire</item>
+        <item lang="ro" id="pages_by_visits">Pagini după vizite</item>
+        <item lang="ro" id="hours">Ore</item>
+        <item lang="ro" id="old_visitors">Viziatori repetabili</item>
+        <item lang="ro" id="new_visitors">Vizitatori noi</item>
+        <item lang="ro" id="site_attendance">Frecventarea site-ului</item>
+        <item lang="ro" id="visit_time">Timpul vizitei</item>
+        <item lang="ro" id="repeat_new_visits">Repeate/Vizite noi</item>
+        <item lang="ro" id="page_load_speed">Viteza de încărcare a paginii</item>
+        <item lang="ro" id="total_pages_viewed_per_visitor">Total pagini vizualizate pe vizitator</item>
+        <item lang="ro" id="visits">Vizite</item>
+        <item lang="ro" id="robots">Roboți</item>
+        <item lang="ro" id="undefined">nedefinit</item>
+        <item lang="ro" id="users_online">Utilizatori online</item>
+        <item lang="ro" id="view_pages">Vezi pagini</item>
+        <item lang="ro" id="average_depth">Adâncime medie</item>
+        <item lang="ro" id="average_duration">Durata medie</item>
+        <item lang="ro" id="visitors">Vizitatori</item>
+        <item lang="ro" id="visitor_hosts">Gazdele vizitatorului</item>
+        <item lang="ro" id="search_conditions">Condițiile căutări</item>
+        <item lang="ro" id="found_products">Produse găsite</item>
+        <item lang="ro" id="phrase">Frază</item>
+        <item lang="ro" id="search_phrase">Caută frază</item>
+        <item lang="ro" id="referrer_url">URL-ul îndrumător</item>
+        <item lang="ro" id="browser_name">Numele browser-ului</item>
+        <item lang="ro" id="browser_version">Versiunea browser-ului</item>
+        <item lang="ro" id="operating_system">Sistem de operare</item>
+        <item lang="ro" id="exclude">Excludeți</item>
+        <item lang="ro" id="browser">Navigator</item>
+        <item lang="ro" id="current_page">Pagina curentă</item>
+        <item lang="ro" id="referrer">Îndrumătorul</item>
+        <item lang="ro" id="user_agent">Utilizator-Agent</item>
+        <item lang="ro" id="all_users">Toți utilizatorii</item>
+        <item lang="ro" id="remove_statistics">Înlăturați statistici</item>
+        <item lang="ro" id="route">Ruta</item>
+        <item lang="ro" id="robot_path">Cale robot</item>
+        <item lang="ro" id="visitor_path">Cale vizitator</item>
+        <item lang="ro" id="robots_log">Jurnal roboți</item>
+        <item lang="ro" id="visitors_log">Jurnal vizitatori</item>
+
+        <item lang="ru" id="short_minute">мин.</item>
+        <item lang="ru" id="operating_systems">Операционные системы</item>
+        <item lang="ru" id="browsers">Браузеры</item>
+        <item lang="ru" id="resolutions">Разрешения</item>
+        <item lang="ru" id="ip_addresses">IP адреса</item>
+        <item lang="ru" id="by_domain">Переходы с доменов</item>
+        <item lang="ru" id="by_search_engine">Переходы с поисковых систем</item>
+        <item lang="ru" id="came_from">Поисковые ссылки</item>
+        <item lang="ru" id="came_to">Найденные страницы</item>
+        <item lang="ru" id="titles_by_visits">Популярные заголовки</item>
+        <item lang="ru" id="entry_points">Точки входа</item>
+        <item lang="ru" id="exit_points">Точки выхода</item>
+        <item lang="ru" id="pages_by_visits">Популярные страницы</item>
+        <item lang="ru" id="hours">Часы</item>
+        <item lang="ru" id="old_visitors">Повторно посетившие</item>
+        <item lang="ru" id="new_visitors">Новые посетители</item>
+        <item lang="ru" id="short_second">сек.</item>
+        <item lang="ru" id="site_attendance">Посещаемость сайта</item>
+        <item lang="ru" id="visit_time">Время посещения</item>
+        <item lang="ru" id="repeat_new_visits">Повторные/Новые посещения</item>
+        <item lang="ru" id="page_load_speed">Скорость загрузки страниц</item>
+        <item lang="ru" id="total_pages_viewed_per_visitor">Кол-во просмотров на пользователя</item>
+        <item lang="ru" id="visits">Посещений</item>
+        <item lang="ru" id="robots">Роботы</item>
+        <item lang="ru" id="undefined">не определен(а)</item>
+        <item lang="ru" id="users_online">Пользователи онлайн</item>
+        <item lang="ru" id="view_pages">Просмотреть страницы</item>
+        <item lang="ru" id="average_depth">Среднее количество</item>
+        <item lang="ru" id="average_duration">Средняя длительность</item>
+        <item lang="ru" id="visitors">Посетители</item>
+        <item lang="ru" id="visitor_hosts">Хосты посетителей</item>
+        <item lang="ru" id="proxy">Прокси</item>
+        <item lang="ru" id="search_conditions">Условия поиска</item>
+        <item lang="ru" id="found_products">Найденные товары</item>
+        <item lang="ru" id="phrase">Фраза</item>
+        <item lang="ru" id="search_phrase">Фраза для поиска</item>
+        <item lang="ru" id="referrer_url">URL реферера</item>
+        <item lang="ru" id="browser_name">Имя браузера</item>
+        <item lang="ru" id="browser_version">Версия браузера</item>
+        <item lang="ru" id="operating_system">Операционная система</item>
+        <item lang="ru" id="exclude">Исключить</item>
+        <item lang="ru" id="robot">Автоматическая система</item>
+        <item lang="ru" id="browser">Браузер</item>
+        <item lang="ru" id="current_page">Текущая страница</item>
+        <item lang="ru" id="referrer">Реферер</item>
+        <item lang="ru" id="user_agent">Агент пользователя</item>
+        <item lang="ru" id="all_users">Все пользователи</item>
+        <item lang="ru" id="remove_statistics">Удалить статистику</item>
+        <item lang="ru" id="route">Маршрут</item>
+        <item lang="ru" id="robot_path">Путь поискового робота</item>
+        <item lang="ru" id="visitor_path">Путь посетителя</item>
+        <item lang="ru" id="robots_log">Журнал событий автоматических систем</item>
+        <item lang="ru" id="visitors_log">Журнал событий посетителей</item>
+
+        <item lang="sl" id="operating_systems">Operacijski sistemi</item>
+        <item lang="sl" id="browsers">Brskalniki</item>
+        <item lang="sl" id="resolutions">Resolucije</item>
+        <item lang="sl" id="ip_addresses">IP naslovi</item>
+        <item lang="sl" id="by_domain">Z domeno</item>
+        <item lang="sl" id="by_search_engine">Z iskalnikom</item>
+        <item lang="sl" id="came_from">Prišel iz</item>
+        <item lang="sl" id="came_to">Prišel do</item>
+        <item lang="sl" id="titles_by_visits">Obiskani naslovi</item>
+        <item lang="sl" id="entry_points">Vstopne točke</item>
+        <item lang="sl" id="exit_points">Izstopne točke</item>
+        <item lang="sl" id="pages_by_visits">Obiskane strani</item>
+        <item lang="sl" id="hours">Ure</item>
+        <item lang="sl" id="old_visitors">Ponovni obiskovalci</item>
+        <item lang="sl" id="new_visitors">Novi obiskovalci</item>
+        <item lang="sl" id="short_second">sek.</item>
+        <item lang="sl" id="site_attendance">Prisotni na spletišču</item>
+        <item lang="sl" id="visit_time">Čas obiska</item>
+        <item lang="sl" id="repeat_new_visits">Ponovite/Novi obiski</item>
+        <item lang="sl" id="page_load_speed">Hitrost nalaganja strani</item>
+        <item lang="sl" id="total_pages_viewed_per_visitor">Skupaj ogledov strani na obiskovalca</item>
+        <item lang="sl" id="visits">Obiski</item>
+        <item lang="sl" id="robots">Roboti</item>
+        <item lang="sl" id="undefined">nedoločen</item>
+        <item lang="sl" id="users_online">Trenutno povezani uporabniki</item>
+        <item lang="sl" id="view_pages">Oglej si strani</item>
+        <item lang="sl" id="average_depth">Povprečna globina</item>
+        <item lang="sl" id="average_duration">Povprečno trajanje</item>
+        <item lang="sl" id="visitors">Obiskovalci</item>
+        <item lang="sl" id="visitor_hosts">Gostje obiskovalca</item>
+        <item lang="sl" id="search_conditions">Iskalni pogoji</item>
+        <item lang="sl" id="found_products">Najdeni izdelki</item>
+        <item lang="sl" id="phrase">Stavek</item>
+        <item lang="sl" id="search_phrase">Iskana fraza</item>
+        <item lang="sl" id="referrer_url">Napotiteljev URL</item>
+        <item lang="sl" id="browser_name">Ime brskalnika</item>
+        <item lang="sl" id="browser_version">Različica brskalnika</item>
+        <item lang="sl" id="operating_system">operacijski sistem</item>
+        <item lang="sl" id="exclude">Izključijo</item>
+        <item lang="sl" id="browser">Brskalnik</item>
+        <item lang="sl" id="current_page">Trenutna stran</item>
+        <item lang="sl" id="referrer">Napotitelj</item>
+        <item lang="sl" id="user_agent">Uporabnik-Agent</item>
+        <item lang="sl" id="all_users">Vsi uporabniki</item>
+        <item lang="sl" id="remove_statistics">Odstrani statistiko</item>
+        <item lang="sl" id="route">Pot</item>
+        <item lang="sl" id="robot_path">Robotova pot</item>
+        <item lang="sl" id="visitor_path">Obiskovalčeva pot</item>
+        <item lang="sl" id="robots_log">Robotov dnevnik</item>
+        <item lang="sl" id="visitors_log">Obiskovalčev dnevnik</item>
+
+        <item lang="zh" id="short_minute">分钟</item>
+        <item lang="zh" id="operating_systems">操作系统</item>
+        <item lang="zh" id="browsers">浏览器</item>
+        <item lang="zh" id="resolutions">分辨率</item>
+        <item lang="zh" id="ip_addresses">IP地址</item>
+        <item lang="zh" id="by_domain">按域名</item>
+        <item lang="zh" id="by_search_engine">由搜索引擎</item>
+        <item lang="zh" id="came_from">来自</item>
+        <item lang="zh" id="came_to">到达</item>
+        <item lang="zh" id="titles_by_visits">访问标题</item>
+        <item lang="zh" id="entry_points">入口点</item>
+        <item lang="zh" id="exit_points">退出点</item>
+        <item lang="zh" id="pages_by_visits">访问网页</item>
+        <item lang="zh" id="hours">小时</item>
+        <item lang="zh" id="old_visitors">回访客户</item>
+        <item lang="zh" id="new_visitors">新到访者</item>
+        <item lang="zh" id="site_attendance">网站出勤率</item>
+        <item lang="zh" id="visit_time">访问时间</item>
+        <item lang="zh" id="repeat_new_visits">重复/新访问</item>
+        <item lang="zh" id="page_load_speed">页面载入速度</item>
+        <item lang="zh" id="total_pages_viewed_per_visitor">每个游客查看的总页数</item>
+        <item lang="zh" id="visits">访问</item>
+        <item lang="zh" id="robots">机器人</item>
+        <item lang="zh" id="undefined">未定义的</item>
+        <item lang="zh" id="users_online">在线用户</item>
+        <item lang="zh" id="view_pages">查看页面</item>
+        <item lang="zh" id="average_depth">平均深度</item>
+        <item lang="zh" id="average_duration">平均时间</item>
+        <item lang="zh" id="visitors">访问者</item>
+        <item lang="zh" id="visitor_hosts">访问主机</item>
+        <item lang="zh" id="proxy">代理</item>
+        <item lang="zh" id="search_conditions">搜索条件</item>
+        <item lang="zh" id="found_products">找到产品</item>
+        <item lang="zh" id="phrase">短语</item>
+        <item lang="zh" id="search_phrase">搜索短语</item>
+        <item lang="zh" id="referrer_url">提交者URL</item>
+        <item lang="zh" id="browser_name">浏览器名称</item>
+        <item lang="zh" id="browser_version">浏览器版本</item>
+        <item lang="zh" id="operating_system">操作系统</item>
+        <item lang="zh" id="exclude">排除</item>
+        <item lang="zh" id="robot">机器人</item>
+        <item lang="zh" id="browser">浏览</item>
+        <item lang="zh" id="current_page">当前页面</item>
+        <item lang="zh" id="referrer">提交者</item>
+        <item lang="zh" id="user_agent">用户代理</item>
+        <item lang="zh" id="all_users">所有用户</item>
+        <item lang="zh" id="remove_statistics">移除统计</item>
+        <item lang="zh" id="route">路由</item>
+        <item lang="zh" id="robot_path">机器人路径</item>
+        <item lang="zh" id="visitor_path">访问路径</item>
+        <item lang="zh" id="robots_log">机器人日志</item>
+        <item lang="zh" id="visitors_log">访问日志</item>
+        <item lang="bg" id="tt_addons_statistics_views_statistics_components_search_form_exclude">Ако тази опция е включена, избраните параметри са изключени от резултатите от търсенето.</item>
+        <item lang="bg" id="tt_addons_statistics_views_statistics_components_search_form_limit">Максимален брой на артикули в резултатите от търсенето.</item>
+
+        <item lang="da" id="tt_addons_statistics_views_statistics_components_search_form_exclude">Hvis aktiveret, sæt muligheder er udelukket fra søgeresultaterne.</item>
+        <item lang="da" id="tt_addons_statistics_views_statistics_components_search_form_limit">Max antal artikler i søgeresultaterne.</item>
+
+        <item lang="el" id="tt_addons_statistics_views_statistics_components_search_form_exclude">Εάν είναι ενεργοποιημένο, οι επιλογές αποκλείονται από τα αποτελέσματα αναζήτησης.</item>
+        <item lang="el" id="tt_addons_statistics_views_statistics_components_search_form_limit">Μέγιστος αριθμός των τεμαχίων στα αποτελέσματα αναζήτησης.</item>
+
+        <item lang="it" id="tt_addons_statistics_views_statistics_components_search_form_exclude">Se attivato, le opzioni impostate sono escluse dai risultati di ricerca.</item>
+        <item lang="it" id="tt_addons_statistics_views_statistics_components_search_form_limit">Numero massimo di oggetti nelle ricerche</item>
+
+        <item lang="nl" id="tt_addons_statistics_views_statistics_components_search_form_exclude">Indien ingeschakeld worden de ingestelde opties buiten de zoekresultaten gehouden.</item>
+        <item lang="nl" id="tt_addons_statistics_views_statistics_components_search_form_limit">Maximum aantal zoekresultaten.</item>
+
+        <item lang="no" id="tt_addons_statistics_views_statistics_components_search_form_exclude">Hvis aktivert, blir de satte alternativene ekskludert fra søkeresultatene.</item>
+        <item lang="no" id="tt_addons_statistics_views_statistics_components_search_form_limit">Maks antall elementer i søkeresultatene.</item>
+
+        <item lang="ro" id="tt_addons_statistics_views_statistics_components_search_form_exclude">Dacă e activată, opțiunile de setare sunt excluse din rezultatele căutării.</item>
+        <item lang="ro" id="tt_addons_statistics_views_statistics_components_search_form_limit">Numărul maxim de produse în rezultatele căutării.</item>
+
+        <item lang="ru" id="tt_addons_statistics_views_statistics_components_search_form_exclude">Если опция включена, выбранные параметры исключаются из результатов поиска.</item>
+        <item lang="ru" id="tt_addons_statistics_views_statistics_components_search_form_limit">Максимальное количество элементов в результатах поиска.</item>
+
+        <item lang="zh" id="tt_addons_statistics_views_statistics_components_search_form_exclude">如果启用,设置的选项在搜索结果被排除.</item>
+        <item lang="zh" id="tt_addons_statistics_views_statistics_components_search_form_limit">在搜索结果中项目的最大数目.</item>
+    </language_variables>
+</addon>
